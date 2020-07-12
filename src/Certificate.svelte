@@ -7,6 +7,7 @@
         $form.modal.type = 3;
         $form.modal.data = {};
         $form.modal.width = '40';
+        $form.modal.topCloseBtn = true;
         $showModal = true;
     }
 

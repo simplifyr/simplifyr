@@ -7,10 +7,20 @@
   import Protocol from "./Protocol.svelte";
   import Certificate from "./Certificate.svelte";
   import Editor from "./Editor.svelte";
-  import { visiblePart, form, auth, protocol, ssl, certificate, recent, contentType } from "./store";
+  import {
+    visiblePart,
+    form,
+    auth,
+    protocol,
+    ssl,
+    certificate,
+    recent,
+    contentType,
+    showModal
+  } from "./store";
   import { processRawRequest } from "./util";
 
-  var val = `GET /ping HTTP/1.1
+  var val = `POST /ping?new=true HTTP/1.1
 Host: simplifyr.dev
 x-simplifyr-key: 4e6578744269675468696e67`;
 
@@ -28,7 +38,7 @@ region: [a-zA-Z0-9><_/+-]+`);
 
   var mode = "yaml";
 
-  $recent = JSON.parse(window.localStorage.getItem('recent') || '[]');
+  $recent = JSON.parse(window.localStorage.getItem("recent") || "[]");
 
   function nextPart() {
     var cType = processRawRequest($form, $auth, $protocol, $ssl, $certificate);
@@ -39,19 +49,18 @@ region: [a-zA-Z0-9><_/+-]+`);
 
   function saveRequestInRecents() {
     var req = $form.httpReqOpt;
-    var editor = $form['ed1'];
+    var editor = $form["ed1"];
     var _recent = {
       host: req.headers.Host,
       url: req.headers.path,
       method: req.method,
       rawReq: editor.getSession().getValue(),
       when: new Date().getTime()
-    }
+    };
     $recent.splice(0, 0, _recent);
     $recent = $recent.slice(0, 5);
-    window.localStorage.setItem('recent', JSON.stringify($recent));
+    window.localStorage.setItem("recent", JSON.stringify($recent));
   }
-
 
   auth.subscribe(() => {
     var ed = $form["ed1"];
@@ -64,10 +73,18 @@ region: [a-zA-Z0-9><_/+-]+`);
       }
     }
   });
+
+  function showRequestEditorForm() {
+    processRawRequest($form, $auth, $protocol, $ssl, $certificate);
+    $form.modal.type = 5;
+    $form.modal.data = {};
+    $form.modal.width = "60";
+    $form.modal.topCloseBtn = true;
+    $showModal = true;
+  }
 </script>
 
 <style>
-
   .other-opts {
     position: relative;
     text-align: left;
@@ -78,10 +95,24 @@ region: [a-zA-Z0-9><_/+-]+`);
     display: inline-block;
     margin-right: 15px;
   }
+
+  .req-editor-btn {
+    position: absolute;
+    top: 0;
+    right: 6px;
+    line-height: 46px;
+    font-size: 0.8rem;
+    color: #737373;
+    cursor: pointer;
+  }
 </style>
 
 <div class="container {$visiblePart != 0 ? 'hide' : ''}">
   <PartTitle title="Enter HTTP Request" />
+  <div class="req-editor-btn" on:click={showRequestEditorForm}>
+    <i class="fas fa-pen-square" />
+    Edit
+  </div>
   <Editor width="100%" {val} eid="ed1" {mode} />
   <div class="other-opts">
     <div class="left">
@@ -107,5 +138,5 @@ region: [a-zA-Z0-9><_/+-]+`);
 </div>
 
 {#if $visiblePart == 0}
-<Recent />
+  <Recent />
 {/if}

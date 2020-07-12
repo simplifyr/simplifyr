@@ -405,8 +405,9 @@ progress::-webkit-progress-value {
 /******** FORM Elements ***********/
 
 .simplifyr-form header {
-	font-size: 1.5rem;
+	font-size: 1.3rem;
 	margin-bottom: 40px;
+	font-weight: 600;
 }
 
 .simplifyr-form {
@@ -454,7 +455,7 @@ progress::-webkit-progress-value {
 	font-family: 'Open Sans', sans-serif;
 }
 
-::placeholder {
+.simplifyr-form .element .ip input::placeholder {
 	color: #b8b8b8;
 	font-style: italic;
 	font-size: .7rem;

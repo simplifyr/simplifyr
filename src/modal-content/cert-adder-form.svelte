@@ -75,15 +75,6 @@
 </script>
 
 <style>
-  .team-form .body {
-    margin: 0px auto;
-    width: 90%;
-  }
-
-  .team-form header {
-    padding-left: 20px;
-  }
-
 </style>
 
 <div class="team-form simplifyr-form ">

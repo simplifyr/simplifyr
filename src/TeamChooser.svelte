@@ -48,6 +48,7 @@
     $form.modal.data = { login, team };
     $form.modal.type = 4;
     $form.modal.width = 30;
+    $form.modal.topCloseBtn = false;
     $showModal = true;
   }
 

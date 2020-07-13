@@ -4,7 +4,7 @@
   import { syncS3Files } from './util';
 
 
-  var opt = [false, false];
+  var opt = [true, false];
 
   var s3Form = false;
 
@@ -14,7 +14,7 @@
       Prefix: 'Prefix'
   };
 
-  //gamma-tcu2k-ap-northeast-1
+  $form.output.type = 'api';
 
   function selectOption(i) {
     if (!opt[i]) {
@@ -72,7 +72,7 @@
       <i class="fa{opt[0] ? 's' : 'r'} fa-circle" />
       API Response
     </span>
-    <span on:click={() => selectOption(1)}>
+    <span on:click={() => selectOption(1)} style="pointer-events: none; color: #ccc">
       <i class="fa{opt[1] ? 's' : 'r'} fa-circle" />
       S3 Bucket
     </span>

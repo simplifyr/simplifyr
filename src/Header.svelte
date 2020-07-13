@@ -109,7 +109,7 @@
       </div>
       <div class="l-2">
         Simpli<b>fyR</b>
-        <div class="version">0.0.1</div>
+        <div class="version">0.0.1-alpha</div>
       </div>
 
       <div class="theme-chooser">

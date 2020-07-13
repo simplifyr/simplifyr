@@ -110,10 +110,10 @@ region: [a-zA-Z0-9><_/+-]+`);
 <div class="container {$visiblePart != 0 ? 'hide' : ''}">
   <PartTitle title="Enter HTTP Request" />
   <div class="req-editor-btn" on:click={showRequestEditorForm}>
-    <i class="fas fa-pen-square" />
+    <i class="fas fa-pencil-alt" />
     Edit
   </div>
-  <Editor width="100%" {val} eid="ed1" {mode} />
+  <Editor width="99%" {val} eid="ed1" {mode} />
   <div class="other-opts">
     <div class="left">
       <AuthChooser />

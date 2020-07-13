@@ -1,6 +1,6 @@
 <script>
   import { onMount } from "svelte";
-  import { theme, form } from "../store";
+  import { theme, form, showModal, protocol } from "../store";
 
   let part = 0;
   let method;
@@ -12,6 +12,8 @@
   let paramMap = {};
 
   let hKey, hVal, pKey, pVal;
+
+  let http = 'HTTP/1.1';
 
   onMount(() => {
     method = $form.httpReqOpt.method;
@@ -38,6 +40,7 @@
   function addHeader() {
     if (!headerMap[hKey] && hKey && hVal) {
       headers = [...headers, { key: hKey, value: hVal }];
+      headerMap[hKey] = true;
       hKey = "";
       hVal = "";
     }
@@ -46,6 +49,7 @@
   function addParam() {
     if (!paramMap[pKey] && pKey && pVal) {
       params = [...params, { key: pKey, value: pVal }];
+      paramMap[pKey] = true;
       pKey = "";
       pVal = "";
     }
@@ -74,7 +78,15 @@
   }
 
   function setDataInEditor() {
-    
+    let [_p, _b, _h, ...path] = url.split('/');
+    let paramString = params.map(({key, value}) => key + '=' + value).join('&');
+    let headerString = headers.map(({key, value}) => key + ': ' + value).join('\n');
+    headerString = 'Host: ' + _h + '\n' + headerString;
+    path = '/' + path.join('/') + '?' + paramString;
+    http = method + ' ' + path + ' ' + http + '\n' + headerString;
+    $protocol = _p.split(':')[0];
+    $form["ed1"].setValue(http, http.length);
+    $showModal = false;    
   }
 </script>
 

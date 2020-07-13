@@ -40,6 +40,7 @@
     left: 128px;
     text-transform: lowercase;
     font-weight: 600;
+    width: 65px;
   }
 
   .logo .l-1 img {

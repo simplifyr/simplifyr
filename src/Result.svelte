@@ -233,6 +233,7 @@
     $form.modal.type = 0;
     $form.modal.data = o;
     $form.modal.width = 80;
+    $form.modal.topCloseBtn = false;
     $showModal = true;
   }
 

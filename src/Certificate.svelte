@@ -7,11 +7,12 @@
         $form.modal.type = 3;
         $form.modal.data = {};
         $form.modal.width = '40';
+        $form.modal.topCloseBtn = true;
         $showModal = true;
     }
 
     onMount(async function() {
-        let certs = await getData('/api/certs/' + $form._TEAM);
+        let certs = await getData('/api/certs/' + sessionStorage.team);
         $form.certificates = certs.map((cert) => cert.substr(cert.lastIndexOf('::') + 2));
     });
 </script>

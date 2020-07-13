@@ -11,7 +11,7 @@
   (function init() {
     $form.modal = {};
     $form.certificates = [];
-    $form._TEAM = window.localStorage.team;
+    $form._TEAM = window.sessionStorage.team;
     document.getElementById('site-icon').href = '/' + $theme + '.png';
   })();
 </script>

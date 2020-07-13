@@ -6,13 +6,14 @@
   export let showNav;
 
   let showThemeChooser = true;
+  let team = $form._TEAM;
 
   theme.subscribe(() => {
     showThemeChooser = !showThemeChooser;
   });
 
   function showTeamChooserPage() {
-    delete window.localStorage.team;
+    delete window.sessionStorage.team;
     window.location.assign('/');
   }
 </script>
@@ -115,7 +116,7 @@
         <Theme showRest={showThemeChooser} />
       </div>
       {#if showNav}
-        <div class="team-chooser" on:click={showTeamChooserPage} title="Switch Team"><i class="fas fa-sitemap"></i> {$form._TEAM}</div>
+        <div class="team-chooser" on:click={showTeamChooserPage} title="Switch Team"><i class="fas fa-sitemap"></i> {team}</div>
       {/if}
     </div>
     {#if showNav}

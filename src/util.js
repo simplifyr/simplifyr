@@ -171,7 +171,7 @@ var s3Files = {
     size: 0
 };
 
-export async function readHistory(team = window.localStorage.team) {
+export async function readHistory(team = window.sessionStorage.team) {
     var testSuits = [];
     var items = await getData('/api/teams/' + team + '/testsuites/');
     if (items != null) {

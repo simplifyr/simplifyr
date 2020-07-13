@@ -31,13 +31,17 @@
   })();
 
   (async function getTeams() {
-    $form.teams = await getData("/api/teams/");
-    teamsToDisplay = $form.teams = $form.teams.map(t => {
-      return t.split("::")[1];
-    });
-    teamsToDisplay.concat($form.teams);
-    teamsToDisplay = [...teamsToDisplay];
-    loadingTeams = false;
+    if(!window.sessionStorage["team"]) {
+      $form.teams = await getData("/api/teams/");
+      teamsToDisplay = $form.teams = $form.teams.map(t => {
+        return t.split("::")[1];
+      });
+      teamsToDisplay.concat($form.teams);
+      teamsToDisplay = [...teamsToDisplay];
+      loadingTeams = false;
+    } else {
+      $showMainApp =  true;
+    }
   })();
 
   function search() {
@@ -48,6 +52,7 @@
     $form.modal.data = { login, team };
     $form.modal.type = 4;
     $form.modal.width = 30;
+    $form.modal.topCloseBtn = false;
     $showModal = true;
   }
 
@@ -56,7 +61,8 @@
     text2display = "Verifying...";
     var result = await postData("/api/verify", { team, pass });
     if (result.status) {
-      window.localStorage["team"] = team;
+      window.sessionStorage["team"] = team;
+      $form._TEAM = team;
       $showMainApp = true;
     } else {
       text2display = "Verification failed!";

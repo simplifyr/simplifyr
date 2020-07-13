@@ -5,6 +5,7 @@
     import NewTeamAdder from './modal-content/new-team-adder.svelte';
     import CertAdderForm from './modal-content/cert-adder-form.svelte';
     import PasswordValidator from './modal-content/password-validator-form.svelte';
+    import RequestEditor from './modal-content/req-editor-form.svelte';
 
     var type, data, width, topCloseBtn;
 
@@ -18,6 +19,9 @@
     function closeModal () {
       $showModal = false;
       type = -1;
+      if($form.modal.callback) {
+        $form.modal.callback();
+      }
     }
 
 
@@ -36,6 +40,8 @@
       <CertAdderForm />
     {:else if type == 4}
       <PasswordValidator {data}/>
+    {:else if type == 5}
+      <RequestEditor />
     {/if}
 
     <div class="close-btn {topCloseBtn ? 'close-btn-top' : ''}">

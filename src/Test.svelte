@@ -24,7 +24,7 @@
   var isS3FormNeeded = false;
   var s3Location = "";
   var localHistoryItems = [];
-  $form._TEAM = window.localStorage.team;
+  $form._TEAM = window.sessionStorage.team;
   var defaultTestSuiteName = "Untitled Test Suite";
   var testSuiteName = defaultTestSuiteName;
   var testSuiteRef;
@@ -407,6 +407,7 @@
   function showRJQLDoc() {
     $form.modal.type = 1;
     $form.modal.width = 80;
+    $form.modal.topCloseBtn = false;
     $showModal = true;
   }
 
@@ -803,12 +804,12 @@
             <i class="fas fa-bars" />
           </div>
           <div
-            class="opt-list {isS3FormNeeded || isSimulationRequired ? 'hide' : ''}">
-            <div class="opt" data-act="0" on:click={loadFile}>
+            class="opt-list {isS3FormNeeded || isSimulationRequired ? 'hide' : ''}" >
+            <div class="opt" data-act="0" on:click={loadFile} style="display: none">
               <i class="fas fa-desktop" />
               <span>Load from PC</span>
             </div>
-            <div class="opt" data-act="1" on:click={loadFile}>
+            <div class="opt" data-act="1" on:click={loadFile} style="display: none">
               <i class="fab fa-aws" />
               <span>Read S3 file</span>
             </div>

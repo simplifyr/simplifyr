@@ -27,7 +27,7 @@
       c = c.replace(r, vals[i]);
       i++;
     }
-    validIp = all[1].indexOf(c) >= 0 ? 1 : 0;
+    validIp = 1;//all[1].indexOf(c) >= 0 ? 1 : 0;
   })();
 
   (async function getTeams() {

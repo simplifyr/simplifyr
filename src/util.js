@@ -42,6 +42,9 @@ export function processRawRequest($form, $auth, $protocol, $ssl, $certificate) {
 
 export async function postData(url, data) {
     var localReq = isLocalReq(data);
+    if (data.method === 'GET') {
+        updateURLForGET(data);
+    }
     try {
         const response = await (localReq ?
             fetch(data.url, toLocalRequest(data)) :
@@ -90,6 +93,13 @@ function toLocalRequest(data) {
         delete data.body;
     }
     return data;
+}
+
+
+function updateURLForGET(data) {
+    if (data.body.length > 0) {
+        data.url = data.url.split('?')[0] + '?' + data.body.split('\n').join('&');
+    }
 }
 
 export async function postLocalData(data) {

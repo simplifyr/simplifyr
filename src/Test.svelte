@@ -12,7 +12,7 @@
 
   import { onMount } from "svelte";
 
-  var mode = 'xml';
+  var mode = "xml";
   var fsize = "10pt";
   var border = "1px";
   var showingATest = false;
@@ -37,9 +37,9 @@
 
   var simTestCount;
   var isSimulationRequired = false;
+  var ipType = "Input Payload";
 
-
-  var tssIco = ['fa-hdd', 'fa-circle-notch fa-spin'];
+  var tssIco = ["fa-hdd", "fa-circle-notch fa-spin"];
   var tssIcoIndex = 0;
 
   $form.testcases = testcases;
@@ -50,9 +50,20 @@
     });
   });
 
+  visiblePart.subscribe(v => {
+    if (v === 2) {
+      if ($form.httpReqOpt && $form.httpReqOpt.method === 'GET') {
+        ipType = "Query Params";
+      }
+      let _a = $form.httpReqOpt.headers.path.split('?')[1];
+      let _b = _a.split('&').join('\n');
+      $form["ed2"].setValue(_b, _b.length);
+    }
+  });
+
   contentType.subscribe(() => {
-    if($form['ed2']) {
-      $form['ed2'].session.setMode('ace/mode/' + ($contentType || mode));
+    if ($form["ed2"]) {
+      $form["ed2"].session.setMode("ace/mode/" + ($contentType || mode));
     }
   });
 
@@ -65,7 +76,7 @@
     var query = $form["ed3"].getSession().getValue();
 
     if (
-      (ip.length == 0 && $form.httpReqOpt.method != "GET") ||
+      (ip.length == 0 && /(POST|PUT)/.test($form.httpReqOpt.method)) ||
       query.length == 0 ||
       title.length == 0
     ) {
@@ -412,7 +423,7 @@
   }
 
   var sampleQuery = `msg = "PONG"`;
-  var sampleXML = ``;
+  var sampleXML = "";
 </script>
 
 <style>
@@ -788,7 +799,7 @@
       style="flex: 7; border-right: 1px solid rgb(241, 241, 241); position:
       relative;">
       <div class="label">
-        Input Payload
+        {ipType}
         <input
           type="file"
           id="file"
@@ -804,12 +815,20 @@
             <i class="fas fa-bars" />
           </div>
           <div
-            class="opt-list {isS3FormNeeded || isSimulationRequired ? 'hide' : ''}" >
-            <div class="opt" data-act="0" on:click={loadFile} style="display: none">
+            class="opt-list {isS3FormNeeded || isSimulationRequired ? 'hide' : ''}">
+            <div
+              class="opt"
+              data-act="0"
+              on:click={loadFile}
+              style="display: none">
               <i class="fas fa-desktop" />
               <span>Load from PC</span>
             </div>
-            <div class="opt" data-act="1" on:click={loadFile} style="display: none">
+            <div
+              class="opt"
+              data-act="1"
+              on:click={loadFile}
+              style="display: none">
               <i class="fab fa-aws" />
               <span>Read S3 file</span>
             </div>
@@ -835,7 +854,10 @@
         </div>
       </div>
       <div class="{!isS3FormNeeded ? 'hide' : ''} s3-form">
-        <input type="text" placeholder="S3 File Location" bind:value={s3Location} />
+        <input
+          type="text"
+          placeholder="S3 File Location"
+          bind:value={s3Location} />
         <div class="act-wrapper">
           <span class="s3-act green" on:click={loadFromS3}>
             <i class="fas fa-check" />

@@ -83,9 +83,9 @@
     let headerString = headers.map(({key, value}) => key + ': ' + value).join('\n');
     headerString = 'Host: ' + _h + '\n' + headerString;
     path = '/' + path.join('/') + '?' + paramString;
-    http = method + ' ' + path + ' ' + http + '\n' + headerString;
+    let httpReq = method + ' ' + path + ' ' + http + '\n' + headerString;
     $protocol = _p.split(':')[0];
-    $form["ed1"].setValue(http, http.length);
+    $form["ed1"].setValue(httpReq, httpReq.length);
     $showModal = false;    
   }
 </script>
@@ -199,10 +199,10 @@
           {#each headers as header}
             <div class="row ip-row">
               <div class="key">
-                <input placeholder="Name" value={header.key} />
+                <input placeholder="Name" bind:value={header.key} />
               </div>
               <div class="value">
-                <input placeholder="Value" value={header.value} />
+                <input placeholder="Value" bind:value={header.value} />
               </div>
               <div
                 class="action-btn del-red"
@@ -234,10 +234,10 @@
           {#each params as param}
             <div class="row ip-row">
               <div class="key">
-                <input placeholder="Name" value={param.key} />
+                <input placeholder="Name" bind:value={param.key} />
               </div>
               <div class="value">
-                <input placeholder="Value" value={param.value} />
+                <input placeholder="Value" bind:value={param.value} />
               </div>
               <div
                 class="action-btn del-red"

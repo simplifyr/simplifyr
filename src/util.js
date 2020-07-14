@@ -15,8 +15,10 @@ export function processRawRequest($form, $auth, $protocol, $ssl, $certificate) {
             if (lineNo == 0) {
                 let parts = line.split(/\s+/);
                 option.method = parts[0];
-                option.headers.path = parts[1];
-                option.url = parts[1];
+                let s = line.indexOf(' ') + 1;
+                let e =  line.lastIndexOf(' ');
+                option.headers.path = line.substring(s, e);
+                option.url = option.headers.path; 
                 lineNo++;
             } else {
                 let parts = line.split(/:\s/);

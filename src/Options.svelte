@@ -20,7 +20,7 @@
   } from "./store";
   import { processRawRequest } from "./util";
 
-  var val = `POST /ping?new=true HTTP/1.1
+  var val = `GET /ping HTTP/1.1
 Host: simplifyr.dev
 x-simplifyr-key: 4e6578744269675468696e67`;
 

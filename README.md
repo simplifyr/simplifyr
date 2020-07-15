@@ -1,1 +1,1 @@
-### Simplifier UI
+### SimplifyR UI

@@ -52,7 +52,7 @@ region: [a-zA-Z0-9><_/+-]+`);
     var editor = $form["ed1"];
     var _recent = {
       host: req.headers.Host,
-      url: req.headers.path,
+      url: req.headers.path.split('?')[0],
       method: req.method,
       rawReq: editor.getSession().getValue(),
       when: new Date().getTime()

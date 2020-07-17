@@ -38,7 +38,7 @@ region: [a-zA-Z0-9><_/+-]+`);
 
   var mode = "yaml";
 
-  $recent = JSON.parse(window.localStorage.getItem("recent") || "[]");
+  $recent = JSON.parse(localStorage[recentKey()] || "[]");
 
   function nextPart() {
     var cType = processRawRequest($form, $auth, $protocol, $ssl, $certificate);
@@ -59,7 +59,12 @@ region: [a-zA-Z0-9><_/+-]+`);
     };
     $recent.splice(0, 0, _recent);
     $recent = $recent.slice(0, 5);
-    window.localStorage.setItem("recent", JSON.stringify($recent));
+    localStorage[recentKey()] = JSON.stringify($recent);
+  }
+
+
+  function recentKey() {
+    return "recent:" + sessionStorage.team;
   }
 
   auth.subscribe(() => {

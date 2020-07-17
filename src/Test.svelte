@@ -52,12 +52,15 @@
 
   visiblePart.subscribe(v => {
     if (v === 2) {
-      if ($form.httpReqOpt && $form.httpReqOpt.method === 'GET') {
+      if ($form.httpReqOpt &&
+       $form.httpReqOpt.method === "GET" && testcases.length === 0) {
         ipType = "Query Params";
+        let _a = $form.httpReqOpt.headers.path.split("?")[1];
+        if(_a) {
+          let _b = _a.split("&").join("\n");
+          $form["ed2"].setValue(_b, _b.length);
+        }
       }
-      let _a = $form.httpReqOpt.headers.path.split('?')[1];
-      let _b = _a.split('&').join('\n');
-      $form["ed2"].setValue(_b, _b.length);
     }
   });
 

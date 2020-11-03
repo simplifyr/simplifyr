@@ -18,7 +18,7 @@
       .innerText.split(" ");
 
     var all = await Promise.all([
-      getData("https://api6.ipify.org?format=json"),
+      getData("https://api64.ipify.org?format=json"),
       getData("/api/sys/info")
     ]);
     var c = all[0].ip;

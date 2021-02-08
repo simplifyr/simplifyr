@@ -7,18 +7,18 @@
   var team = "";
   var teamsToDisplay = [];
   var newTeamBtnActive = true;
-  var validIp = -1;
+  var validIp = 1;
   var text2display = "";
 
   var imgArr = ["1", "4", "6", "2", "3", "5"];
 
-  (async function getIP() {
+  /*(async function getIP() {
     var vals = document
       .getElementById("simplifyr-info-data")
       .innerText.split(" ");
 
     var all = await Promise.all([
-      getData("https://api6.ipify.org?format=json"),
+      getData("https://api64.ipify.org?format=json"),
       getData("/api/sys/info")
     ]);
     var c = all[0].ip;
@@ -28,7 +28,7 @@
       i++;
     }
     validIp = 1;//all[1].indexOf(c) >= 0 ? 1 : 0;
-  })();
+  })();*/
 
   (async function getTeams() {
     if(!window.sessionStorage["team"]) {

@@ -7,12 +7,12 @@
   var team = "";
   var teamsToDisplay = [];
   var newTeamBtnActive = true;
-  var validIp = -1;
+  var validIp = 1;
   var text2display = "";
 
   var imgArr = ["1", "4", "6", "2", "3", "5"];
 
-  (async function getIP() {
+  /*(async function getIP() {
     var vals = document
       .getElementById("simplifyr-info-data")
       .innerText.split(" ");
@@ -28,7 +28,7 @@
       i++;
     }
     validIp = 1;//all[1].indexOf(c) >= 0 ? 1 : 0;
-  })();
+  })();*/
 
   (async function getTeams() {
     if(!window.sessionStorage["team"]) {

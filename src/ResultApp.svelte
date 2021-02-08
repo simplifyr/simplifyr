@@ -1,12 +1,13 @@
 <script>
   import Header from "./Header.svelte";
-  import { data, sfs } from "./result-store";
+  import { data, sfs, _theme } from "./result-store";
   import DateSelector from "./result/date-selector.svelte";
   import Report from "./result/report.svelte";
   import Wait from './result/wait.svelte';
   import OverAll from "./result/overall.svelte";
   import { getData } from './util';
 
+  document.getElementById('site-icon').href = '/' + $_theme + '.png';
 
   $data = JSON.parse(document.getElementById("cdata").innerText);
   $data.data = JSON.parse($data.data);

@@ -23,7 +23,6 @@ export function validator(o) {
                 }
 
             } else {
-                debugger;
                 o.result = validate(o._response.body, o.test.query);
             }
         } catch (e) {

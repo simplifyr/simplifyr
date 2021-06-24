@@ -6,15 +6,17 @@
     runTests,
     currentProgress,
     showModal,
-    theme
+    theme,
+    authRequest,
   } from "./store";
-  import { postData, syncS3Files, postPlainData } from "./util";
+  import { postData, syncS3Files, postPlainData, getAuthRequest } from "./util";
   import { validator } from "./validator";
   import AutomationDoc from "./AutomationDoc.svelte";
 
   var progressDiv;
   var op = [];
   var autoReqList = [];
+  var authRequestTS;
   var autoUrl = null;
   var learnMore = false;
   var syncingS3 = false;
@@ -25,38 +27,54 @@
     '<i class="fas fa-save"></i> Save',
     LOADER + " Saving...",
     '<i class="fas fa-check"></i> Saved',
-    '<a href="{link}" target="_blank"><i class="fas fa-external-link-alt"></i> Open Result</a>'
+    '<a href="{link}" target="_blank"><i class="fas fa-external-link-alt"></i> Open Result</a>',
   ];
 
-  var saveBtnCls = ['', 'disabled', 'success', ''];
+  var saveBtnCls = ["", "disabled", "success", ""];
 
   var saveBtnIndex = 0;
 
   var TestRunner = {
-    runNext: async function() {
+    runNext: async function () {
       var o = op[this.currentTest];
       o._st = new Date().getTime();
       var req = Object.assign({}, $form.httpReqOpt);
       var test = this.tests[this.currentTest];
       this.currentTest++;
+      req.authData = test.authData;
       req.body = test.ip;
       o.apiResp = o.loader;
       op = [...op];
-      populateAutoReqList(req, test);
       let res = await postData("/api/post-test", req);
+      populateAutoReqList(req, test);
       updateAPIStatus(o, res);
     },
 
-    init: function(tests) {
+    init: async function (tests) {
       this.tests = tests;
+      if ($authRequest.title) {
+        authRequestTS = getAuthRequest({ ...$authRequest });
+        try {
+          let res = await postData("/api/post-test", authRequestTS);
+          this.tests = tests.map((t) => {
+            t.authData = res.body;
+            return t;
+          });
+        } catch (e) {
+          alert("Error encountered while making auth call");
+          console.log(e);
+        }
+      }
       this.currentTest = 0;
+      this.runNext();
+      $runTests = false;
     },
-    hasNext: function() {
+    hasNext: function () {
       return this.currentTest < this.tests.length;
-    }
+    },
   };
 
-  runTests.subscribe(async function() {
+  runTests.subscribe(async function () {
     if ($runTests) {
       saveBtnIndex = 0;
       autoUrl = null;
@@ -84,8 +102,6 @@
     progressDiv = (1 - $currentProgress) / tests.length;
     autoUrl = null;
     TestRunner.init(tests);
-    TestRunner.runNext();
-    $runTests = false;
   }
 
   async function syncS3(o) {
@@ -125,19 +141,20 @@
   }
 
   function populateAutoReqList(req, test) {
+    delete req.authData;
     autoReqList.push({
       req,
       output: $form.output,
       query: test.query,
       validator: test.validator,
-      title: test.title
+      title: test.title,
     });
   }
 
   function updateAPIStatus(o, res) {
     o.test.result = res;
     o.s3 = LOADER;
-    o.apiResp = res.status.code + ' ' + res.status.msg;
+    o.apiResp = res.status.code + " " + res.status.msg;
 
     if (res.status.code === 600) {
       o.apiErr = true;
@@ -178,22 +195,29 @@
 
   const __TS__ = () => $form.testSuite.replace(/\s+/g, "-");
 
-  function runNextTest() {
+  async function runNextTest() {
     if (TestRunner.hasNext()) {
       TestRunner.runNext();
     } else {
-      var apiUrl =
-        "/api/teams/" +
-        $form._TEAM +
-        "/automation/" +
-        "auto::" +
-        $form._TEAM +
-        "::" +
-        __TS__();
-
+      const apiURL = "/api/teams/" + $form._TEAM + "/automation/";
+      var autoReqId = "auto::" + $form._TEAM + "::" + __TS__();
+      var autoReqUrl = apiURL + autoReqId;
       autoUrl = toAutoURL();
+      postPlainData(autoReqUrl, JSON.stringify(autoReqList));
 
-      postPlainData(apiUrl, JSON.stringify(autoReqList));
+      if ($authRequest.title) {
+        var authId =
+          "auth::" +
+          $form._TEAM +
+          "::" +
+          $authRequest.title.replace(/\s+/g, "-");
+
+        var authApiUrl = "/api/key/" + authId;
+        var autoAuthMapUrl = "/api/key/auth-" + autoReqId;
+
+        postPlainData(authApiUrl, JSON.stringify($authRequest));
+        postPlainData(autoAuthMapUrl, JSON.stringify(authRequestTS));
+      }
     }
   }
 
@@ -209,10 +233,8 @@
   }
 
   function isTargetFile(aws, lm, df) {
-    return  lm - aws <= 80000;
+    return lm - aws <= 80000;
   }
-
-
 
   function getBasicOP(test, i) {
     return {
@@ -224,7 +246,7 @@
       s3: ELLIPSIS,
       validation: ELLIPSIS,
       timeTaken: ELLIPSIS,
-      attempts: 0
+      attempts: 0,
     };
   }
 
@@ -255,7 +277,7 @@
     var sf = {
       passed: 0,
       failed: 0,
-      total: op.length
+      total: op.length,
     };
     for (var o of op) {
       sf.passed += o.status == "passed" ? 1 : 0;
@@ -270,13 +292,13 @@
     var r = JSON.stringify({
       sf,
       result: op,
-      done: true
+      done: true,
     });
 
     var resp = await postPlainData("/api/key/" + key, JSON.stringify(r));
     if (resp.status === "OK") {
       saveBtnIndex = 2;
-      setTimeout(function() {
+      setTimeout(function () {
         saveBtnText[3] = saveBtnText[3].replace(
           "{link}",
           toAutoURL().replace("run", "result") + "?" + now
@@ -288,6 +310,75 @@
     }
   }
 </script>
+
+<div class="container {$visiblePart != 3 ? 'hide' : ''}">
+  <PartTitle title="Test Results" />
+  <div
+    class="save-result-btn {autoUrl ? '' : 'hide'}
+    {saveBtnCls[saveBtnIndex]}"
+    on:click={saveAll}
+  >
+    {@html saveBtnText[saveBtnIndex]}
+  </div>
+  <div class="tab-container">
+    <div class="{op.length == 0 || syncingS3 ? '' : 'hide'} no-test">
+      <img src="/test.png" alt="test" />
+      <div class="no-test-msg">
+        {@html syncingS3
+          ? LOADER + "  Syncing with S3..."
+          : "Try running some tests"}
+      </div>
+    </div>
+    <table class={op.length > 0 && !syncingS3 ? "" : "hide"}>
+      <thead>
+        <tr>
+          <th>Case No.</th>
+          <th>Description</th>
+          <th class="api-res-col">API Response</th>
+          <th class={$form.output.type != "s3" ? "hide" : ""}>File on S3</th>
+          <th>Validation</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {#each op as o}
+          <tr on:click={() => showDetails(o)}>
+            <td>{o.no}</td>
+            <td>{o.desc}</td>
+            <td class="api-res-col {o.apiErr ? 'failed' : ''}">
+              {@html _normalize(o.apiResp)}
+            </td>
+            <td class={$form.output.type != "s3" ? "hide" : ""}>
+              {@html o.s3}
+            </td>
+            <td>
+              {@html o.validation}
+            </td>
+            <td>
+              {@html o.timeTaken}
+            </td>
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+    {#if autoUrl != null}
+      <div class="auto-link">
+        <b>
+          <i class="fas fa-cogs" />
+        </b>
+        &nbsp;
+        {@html autoUrl}
+        <span id="learn-more" on:click={() => (learnMore = !learnMore)}>
+          <i class="fas fa-info-circle" />
+          {!learnMore ? "show more" : "hide"}
+        </span>
+      </div>
+      <div class=" {learnMore ? '' : 'hide'}">
+        <AutomationDoc url={autoUrl} />
+      </div>
+    {/if}
+  </div>
+</div>
 
 <style>
   table {
@@ -368,72 +459,6 @@
   }
 
   .save-result-btn:hover {
-    color: #512DA8;
+    color: #512da8;
   }
 </style>
-
-<div class="container {$visiblePart != 3 ? 'hide' : ''}">
-  <PartTitle title="Test Results" />
-  <div
-    class="save-result-btn {autoUrl ? '' : 'hide'}
-    {saveBtnCls[saveBtnIndex]}"
-    on:click={saveAll}>
-    {@html saveBtnText[saveBtnIndex]}
-  </div>
-  <div class="tab-container">
-    <div class="{op.length == 0 || syncingS3 ? '' : 'hide'} no-test">
-      <img src="/test.png" alt="test" />
-      <div class="no-test-msg">
-        {@html syncingS3 ? LOADER + '  Syncing with S3...' : 'Try running some tests'}
-      </div>
-    </div>
-    <table class={op.length > 0 && !syncingS3 ? '' : 'hide'}>
-      <thead>
-        <tr>
-          <th>Case No.</th>
-          <th>Description</th>
-          <th class="api-res-col">API Response</th>
-          <th class={$form.output.type != 's3' ? 'hide' : ''}>File on S3</th>
-          <th>Validation</th>
-          <th>Time</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each op as o}
-          <tr on:click={() => showDetails(o)}>
-            <td>{o.no}</td>
-            <td>{o.desc}</td>
-            <td class="api-res-col {o.apiErr ? 'failed' : ''}">
-              {@html _normalize(o.apiResp)}
-            </td>
-            <td class={$form.output.type != 's3' ? 'hide' : ''}>
-              {@html o.s3}
-            </td>
-            <td>
-              {@html o.validation}
-            </td>
-            <td>
-              {@html o.timeTaken}
-            </td>
-          </tr>
-        {/each}
-      </tbody>
-    </table>
-    {#if autoUrl != null}
-      <div class="auto-link">
-        <b>
-          <i class="fas fa-cogs" />
-        </b>
-        &nbsp;
-        {@html autoUrl}
-        <span id="learn-more" on:click={() => (learnMore = !learnMore)}>
-          <i class="fas fa-info-circle" />
-          {!learnMore ? 'show more' : 'hide'}
-        </span>
-      </div>
-      <div class=" {learnMore ? '' : 'hide'}">
-        <AutomationDoc url={autoUrl} />
-      </div>
-    {/if}
-  </div>
-</div>

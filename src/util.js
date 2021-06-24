@@ -42,7 +42,8 @@ export function processRawRequest($form, $auth, $protocol, $ssl, $certificate) {
     return contentType;
 }
 
-export async function postData(url, data) {
+export async function postData(url, _data) {
+    const data = JSON.parse(JSON.stringify(_data));
     var localReq = isLocalReq(data);
     if (data.method === 'GET') {
         updateURLForGET(data);
@@ -69,6 +70,7 @@ export async function postData(url, data) {
 }
 
 function toPostData(data) {
+    interpolateAuthData(data);
     return {
         method: "POST",
         body: JSON.stringify(data),
@@ -76,6 +78,41 @@ function toPostData(data) {
             "Content-Type": "application/json"
         }
     };
+}
+
+function toLocalRequest(data) {
+    interpolateAuthData(data);
+    if (data.method === 'GET') {
+        delete data.body;
+    }
+    return data;
+}
+
+function interpolateAuthData(data) {
+    const regex = /(@[$a-z0-9_-]+)/g;
+    if (data.authData) {
+        const keys = Object.keys(data.headers);
+        for (let k of keys) {
+            let v = data.headers[k];
+            let m;
+
+            while ((m = regex.exec(v)) !== null) {
+                // This is necessary to avoid infinite loops with zero-width matches
+                if (m.index === regex.lastIndex) {
+                    regex.lastIndex++;
+                }
+                
+                // The result can be accessed through the `m`-variable.
+                m.forEach((match, groupIndex) => {
+                    let prop = match.substr(1);
+                    if (data.authData[prop] !== undefined) {
+                        v = v.replace(match, data.authData[prop]);
+                    }
+                });
+            }
+            data.headers[k] = v;
+        }
+    }
 }
 
 function toAPIResponse(hdrs, body, status) {
@@ -88,13 +125,6 @@ function toAPIResponse(hdrs, body, status) {
 
 function isLocalReq({ url }) {
     return /^http:\/\/localhost:\d+/.test(url);
-}
-
-function toLocalRequest(data) {
-    if (data.method === 'GET') {
-        delete data.body;
-    }
-    return data;
 }
 
 
@@ -285,4 +315,37 @@ export function parseAutomationResult(raw) {
         raw.data = JSON.parse(raw.data);
     }
     return raw;
+}
+
+export function getAuthRequest(...param) {
+
+    const $auth = param[0];
+    var request = {
+        "headers": toHeaders($auth.headers),
+        "method": $auth.method,
+        "url": toUrl($auth.url, $auth.params),
+        "auth": 0,
+        "ssl": 0,
+        "_cert": "none",
+        "body": $auth.body
+    };
+    return request;
+
+    function toHeaders(hdrs) {
+        const hdrMp = {};
+        for (let hdr of hdrs) {
+            hdrMp[hdr.key] = hdr.value;
+        }
+        return hdrMp;
+    }
+
+    function toUrl($url, $params) {
+        if ($params.length > 0) {
+            $url += '?';
+            for (let p of $params) {
+                $url += p.key + '=' + p.value + '&'
+            }
+        }
+        return $url;
+    }
 }

@@ -25,3 +25,7 @@ export let recent = writable([]);
 export let showMainApp = writable(false);
 
 export let contentType = writable('xml');
+
+export let authRequest = writable({});
+
+export let authRequestList = writable([]);

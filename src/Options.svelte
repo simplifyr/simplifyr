@@ -1,5 +1,4 @@
 <script>
-  import { onMount } from "svelte";
   import Recent from "./Recent.svelte";
   import PartTitle from "./PartTitle.svelte";
   import AuthChooser from "./AuthChooser.svelte";
@@ -7,6 +6,8 @@
   import Protocol from "./Protocol.svelte";
   import Certificate from "./Certificate.svelte";
   import Editor from "./Editor.svelte";
+  import AuthRequest from "./AuthRequest.svelte";
+
   import {
     visiblePart,
     form,
@@ -16,8 +17,9 @@
     certificate,
     recent,
     contentType,
-    showModal
+    showModal,
   } from "./store";
+
   import { processRawRequest } from "./util";
 
   var val = `GET /ping HTTP/1.1
@@ -52,16 +54,15 @@ region: [a-zA-Z0-9><_/+-]+`);
     var editor = $form["ed1"];
     var _recent = {
       host: req.headers.Host,
-      url: req.headers.path.split('?')[0],
+      url: req.headers.path.split("?")[0],
       method: req.method,
       rawReq: editor.getSession().getValue(),
-      when: new Date().getTime()
+      when: new Date().getTime(),
     };
     $recent.splice(0, 0, _recent);
     $recent = $recent.slice(0, 5);
     localStorage[recentKey()] = JSON.stringify($recent);
   }
-
 
   function recentKey() {
     return "recent:" + sessionStorage.team;
@@ -89,28 +90,9 @@ region: [a-zA-Z0-9><_/+-]+`);
   }
 </script>
 
-<style>
-  .other-opts {
-    position: relative;
-    text-align: left;
-    margin-top: 20px;
-    margin-left: 5px;
-  }
-  .left {
-    display: inline-block;
-    margin-right: 15px;
-  }
-
-  .req-editor-btn {
-    position: absolute;
-    top: 0;
-    right: 6px;
-    line-height: 46px;
-    font-size: 0.8rem;
-    color: #737373;
-    cursor: pointer;
-  }
-</style>
+{#if $visiblePart == 0}
+  <AuthRequest />
+{/if}
 
 <div class="container {$visiblePart != 0 ? 'hide' : ''}">
   <PartTitle title="Enter HTTP Request" />
@@ -134,7 +116,6 @@ region: [a-zA-Z0-9><_/+-]+`);
     </div>
   </div>
   <div style="text-align: right; padding: 10px;">
-
     <button class="next-btn" on:click={nextPart}>
       Next
       <i class="fas fa-arrow-right" />
@@ -145,3 +126,26 @@ region: [a-zA-Z0-9><_/+-]+`);
 {#if $visiblePart == 0}
   <Recent />
 {/if}
+
+<style>
+  .other-opts {
+    position: relative;
+    text-align: left;
+    margin-top: 20px;
+    margin-left: 5px;
+  }
+  .left {
+    display: inline-block;
+    margin-right: 15px;
+  }
+
+  .req-editor-btn {
+    position: absolute;
+    top: 0;
+    right: 6px;
+    line-height: 46px;
+    font-size: 0.8rem;
+    color: #737373;
+    cursor: pointer;
+  }
+</style>

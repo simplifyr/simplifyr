@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from "svelte";
   import Recent from "./Recent.svelte";
   import PartTitle from "./PartTitle.svelte";
   import AuthChooser from "./AuthChooser.svelte";
@@ -6,6 +7,7 @@
   import Protocol from "./Protocol.svelte";
   import Certificate from "./Certificate.svelte";
   import Editor from "./Editor.svelte";
+
   import AuthRequest from "./AuthRequest.svelte";
 
   import {
@@ -18,9 +20,11 @@
     recent,
     contentType,
     showModal,
+    authRequestList,
+    authRequest,
   } from "./store";
 
-  import { processRawRequest } from "./util";
+  import { processRawRequest, getData } from "./util";
 
   var val = `GET /ping HTTP/1.1
 Host: simplifyr.dev
@@ -46,6 +50,9 @@ region: [a-zA-Z0-9><_/+-]+`);
     var cType = processRawRequest($form, $auth, $protocol, $ssl, $certificate);
     $contentType = cType;
     saveRequestInRecents();
+    if ($auth != 2) {
+      $authRequest = {};
+    }
     $visiblePart += 1;
   }
 
@@ -88,11 +95,13 @@ region: [a-zA-Z0-9><_/+-]+`);
     $form.modal.topCloseBtn = true;
     $showModal = true;
   }
-</script>
 
-{#if $visiblePart == 0}
-  <AuthRequest />
-{/if}
+  onMount(async () => {
+    $authRequestList = await getData(
+      "/api/teams/" + sessionStorage.team + "/auths"
+    );
+  });
+</script>
 
 <div class="container {$visiblePart != 0 ? 'hide' : ''}">
   <PartTitle title="Enter HTTP Request" />
@@ -115,6 +124,9 @@ region: [a-zA-Z0-9><_/+-]+`);
       <Certificate />
     </div>
   </div>
+  {#if $auth == 2}
+    <AuthRequest />
+  {/if}
   <div style="text-align: right; padding: 10px;">
     <button class="next-btn" on:click={nextPart}>
       Next

@@ -1,11 +1,11 @@
 <script>
-  import Header from "./Header.svelte";
   import {
     authRequestList,
     form,
     showModal,
     authRequest,
     theme,
+    visiblePart,
   } from "./store";
   import { getData } from "./util";
 
@@ -27,7 +27,11 @@
     $showModal = true;
   }
 
-  function addNewAuth() {}
+  function addNewAuth() {
+    selectedAuth = $authRequest;
+    $authRequest = {};
+    authId = "NA";
+  }
 
   function updateExistingAuth() {}
 
@@ -35,10 +39,15 @@
     if (!authMap[authId]) {
       let d = await getData("/api/key/" + authId);
       authMap[authId] = JSON.parse(d.value);
-      console.log(authMap[authId]);
     }
     selectedAuth = authMap[authId];
   }
+
+  visiblePart.subscribe((n) => {
+    if (n === 1) {
+      $authRequest = selectedAuth;
+    }
+  });
 </script>
 
 <div class="auth-request">
@@ -57,7 +66,7 @@
       on:change={getAuthDetails}
       class="{$theme}-color"
     >
-      <option disabled selected>Select an existing request</option>
+      <option disabled selected value="NA">Select an existing request</option>
       {#each $authRequestList as auth}
         <option value={auth}>{auth.split("::")[2].replace(/-/g, " ")}</option>
       {/each}

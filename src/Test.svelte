@@ -7,7 +7,7 @@
     readHistory,
     postPlainData,
     getData,
-    parseSFRFileContent
+    parseSFRFileContent,
   } from "./util";
 
   import { onMount } from "svelte";
@@ -45,18 +45,21 @@
   $form.testcases = testcases;
 
   onMount(() => {
-    readHistory($form._TEAM).then(function(data) {
+    readHistory($form._TEAM).then(function (data) {
       localHistoryItems = data;
     });
   });
 
-  visiblePart.subscribe(v => {
+  visiblePart.subscribe((v) => {
     if (v === 2) {
-      if ($form.httpReqOpt &&
-       $form.httpReqOpt.method === "GET" && testcases.length === 0) {
+      if (
+        $form.httpReqOpt &&
+        $form.httpReqOpt.method === "GET" &&
+        testcases.length === 0
+      ) {
         ipType = "Query Params";
         let _a = $form.httpReqOpt.headers.path.split("?")[1];
-        if(_a) {
+        if (_a) {
           let _b = _a.split("&").join("\n");
           $form["ed2"].setValue(_b, _b.length);
         }
@@ -93,7 +96,7 @@
       title,
       uuid,
       index: testcases.length,
-      validator
+      validator,
     };
 
     _saveOrUpdateTest(test);
@@ -136,7 +139,7 @@
         break;
       }
     }
-    $form["ed2"].getSession().setValue(test.ip);
+    $form["ed2"].getSession().setValue(test.ip || "");
     $form["ed3"].getSession().setValue(test.query);
     title = test.title;
     validator = test.validator;
@@ -238,7 +241,7 @@
       var file = files[i];
       var reader = new FileReader();
 
-      reader.onload = function() {
+      reader.onload = function () {
         if (isSimplifyrFile(file.name)) {
           createTestCase(reader.result);
           saveTestCase();
@@ -253,7 +256,7 @@
         }
       };
 
-      reader.onerror = function() {};
+      reader.onerror = function () {};
       reader.readAsText(file);
     }
 
@@ -263,7 +266,7 @@
     }
 
     return {
-      read
+      read,
     };
   }
 
@@ -314,7 +317,7 @@
     var slashAt = key.indexOf("/");
     var payload = {
       Bucket: key.substr(0, slashAt),
-      Key: key.substr(slashAt + 1)
+      Key: key.substr(slashAt + 1),
     };
     var data = await postData("/api/s3-file", payload);
     if (typeof data == "object" && typeof data != "string") {
@@ -354,7 +357,7 @@
         key: h,
         name,
         cd: formattedDate(meta),
-        ntests
+        ntests,
       });
     }
     searchableHistoryItems = historyItems = history;
@@ -410,7 +413,7 @@
   function searchAndShow() {
     historyItems = searchableHistoryItems;
     if (searchText.length != 0) {
-      var itemsToDisplay = historyItems.filter(h => {
+      var itemsToDisplay = historyItems.filter((h) => {
         var regex = new RegExp(searchText, "i");
         return regex.test(h.name);
       });
@@ -428,6 +431,221 @@
   var sampleQuery = `msg = "PONG"`;
   var sampleXML = "";
 </script>
+
+<div class="container {$visiblePart != 2 ? 'hide' : ''}">
+  <div
+    class="history {localHistoryItems.length == 0 || tssIcoIndex != 0
+      ? 'disabled'
+      : ''}
+    {showHistory ? 'hist-1' : ''}"
+    on:click={showSavedTests}
+    title="Saved Tests"
+  >
+    <i class="fas {tssIco[tssIcoIndex]}" />
+    <div
+      class="hist-search {showHistory ? '' : 'hide'}"
+      on:click={(e) => e.stopPropagation()}
+    >
+      <input
+        type="text"
+        placeholder="Start typing..."
+        on:keyup={searchAndShow}
+        bind:value={searchText}
+      />
+    </div>
+  </div>
+  <div class="saved-suites {showHistory ? '' : 'hide'}">
+    {#each historyItems as history}
+      <div class="suite">
+        <div class="btn">
+          <div class="hldr">
+            <span on:click={() => useThisTestSuite(history)}>
+              <i class="fas fa-clone" />
+              USE
+            </span>
+          </div>
+        </div>
+        <div class="ts-n">
+          <i class="fas fa-stream" />
+          {@html history.name}
+        </div>
+        <div class="ts-cd">
+          <div class="t-cnt">
+            {history.ntests} Test{history.ntests > 1 ? "s" : ""}
+          </div>
+          {history.cd}
+        </div>
+      </div>
+    {/each}
+  </div>
+
+  <PartTitle title={testSuiteName} />
+
+  <div class="test-runner-btn {runnable ? '' : 'disabled'}" on:click={runTest}>
+    <i class="fas fa-bolt" />
+    Run
+  </div>
+  <div
+    class="ip"
+    style="text-align: left; margin-bottom: 10px; margin-right: 10px;"
+  >
+    <input
+      type="text"
+      placeholder="Describe your test"
+      bind:value={title}
+      style="border-color: #efefef;"
+    />
+  </div>
+  <div style="display: flex;">
+    <div
+      style="flex: 7; border-right: 1px solid rgb(241, 241, 241); position:
+      relative;"
+    >
+      <div class="label">
+        {ipType}
+        <input
+          type="file"
+          id="file"
+          title="Add File"
+          on:change={readFile}
+          style="display:none;"
+          multiple
+          accept=".sfr"
+        />
+      </div>
+      <div class="ip-options">
+        <div class={loadingFile ? "hide" : ""}>
+          <div style="text-align: left; color:#888181;">
+            <i class="fas fa-bars" />
+          </div>
+          <div
+            class="opt-list {isS3FormNeeded || isSimulationRequired
+              ? 'hide'
+              : ''}"
+          >
+            <div
+              class="opt"
+              data-act="0"
+              on:click={loadFile}
+              style="display: none"
+            >
+              <i class="fas fa-desktop" />
+              <span>Load from PC</span>
+            </div>
+            <div
+              class="opt"
+              data-act="1"
+              on:click={loadFile}
+              style="display: none"
+            >
+              <i class="fab fa-aws" />
+              <span>Read S3 file</span>
+            </div>
+            <div
+              class="opt {$form.testcases.length == 0 ? 'disabled' : ''}"
+              data-act="2"
+              on:click={loadFile}
+            >
+              <i class="far fa-folder" />
+              <span>Copy last test</span>
+            </div>
+            <div
+              class="opt {$form.testcases.length == 0 ? 'disabled' : ''}"
+              data-act="3"
+              on:click={loadFile}
+            >
+              <i class="far fa-window-restore" />
+              <span>Replicate test</span>
+            </div>
+          </div>
+        </div>
+
+        <div class={!loadingFile ? "hide" : ""}>
+          <i class="fas fa-circle-notch fa-spin" />
+        </div>
+      </div>
+      <div class="{!isS3FormNeeded ? 'hide' : ''} s3-form">
+        <input
+          type="text"
+          placeholder="S3 File Location"
+          bind:value={s3Location}
+        />
+        <div class="act-wrapper">
+          <span class="s3-act green" on:click={loadFromS3}>
+            <i class="fas fa-check" />
+          </span>
+          <span class="s3-act red" on:click={() => (isS3FormNeeded = false)}>
+            <i class="fas fa-times" />
+          </span>
+        </div>
+      </div>
+      <div class="{!isSimulationRequired ? 'hide' : ''} s3-form">
+        <input
+          type="text"
+          placeholder="Enter Test Count"
+          bind:value={simTestCount}
+        />
+        <div class="act-wrapper">
+          <span class="s3-act green" on:click={replicateTests}>
+            <i class="fas fa-check" />
+          </span>
+          <span
+            class="s3-act red"
+            on:click={() => (isSimulationRequired = false)}
+          >
+            <i class="fas fa-times" />
+          </span>
+        </div>
+      </div>
+      <Editor width="100%" val={sampleXML} eid="ed2" {mode} {fsize} />
+    </div>
+    <div style="flex: 3 1 3%; margin-left: 10px; ">
+      <div class="label" style="margin-bottom: 10px;">
+        Validator
+        <select bind:value={validator} on:change={updateValidator}>
+          <option value="0">RJQL</option>
+          <option value="1">Text</option>
+          <option value="2">RegEx</option>
+        </select>
+        <div
+          class="rjql-doc-link {validator == 0 ? '' : 'hide'}"
+          on:click={() => showRJQLDoc()}
+          title="What is RJQL"
+        >
+          <i class="fas fa-question-circle" />
+        </div>
+      </div>
+      <Editor
+        width="98%"
+        val={sampleQuery}
+        eid="ed3"
+        mode="javascript"
+        showLineNo={false}
+        {fsize}
+      />
+    </div>
+  </div>
+
+  <div style="text-align: left; margin: 10px 0px;">
+    <div
+      class="test adder"
+      on:click={saveTestCase}
+      title={showingATest ? "Update" : "Save"}
+    >
+      <i class="fas fa-{showingATest ? 'check' : 'plus'}" />
+    </div>
+    {#each testcases as test, i}
+      <div class="test" on:click={() => showThisTest(test.uuid)}>
+        <div class="delete-btn" on:click={(e) => deleteThis(e, test.uuid)}>
+          <i class="fas fa-minus-circle" />
+        </div>
+        <div class="title">{test.title}</div>
+        <i class="fas fa-receipt" />
+        {i + 1}
+      </div>
+    {/each}
+  </div>
+</div>
 
 <style>
   .label {
@@ -738,197 +956,3 @@
     transform: scale(1.2, 1.2);
   }
 </style>
-
-<div class="container {$visiblePart != 2 ? 'hide' : ''}">
-  <div
-    class="history {localHistoryItems.length == 0 || tssIcoIndex != 0 ? 'disabled' : ''}
-    {showHistory ? 'hist-1' : ''}"
-    on:click={showSavedTests}
-    title="Saved Tests">
-    <i class="fas {tssIco[tssIcoIndex]}" />
-    <div
-      class="hist-search {showHistory ? '' : 'hide'}"
-      on:click={e => e.stopPropagation()}>
-      <input
-        type="text"
-        placeholder="Start typing..."
-        on:keyup={searchAndShow}
-        bind:value={searchText} />
-    </div>
-  </div>
-  <div class="saved-suites {showHistory ? '' : 'hide'}">
-    {#each historyItems as history}
-      <div class="suite">
-        <div class="btn">
-          <div class="hldr">
-            <span on:click={() => useThisTestSuite(history)}>
-              <i class="fas fa-clone" />
-              USE
-            </span>
-          </div>
-        </div>
-        <div class="ts-n">
-          <i class="fas fa-stream" />
-          {@html history.name}
-        </div>
-        <div class="ts-cd">
-          <div class="t-cnt">
-            {history.ntests} Test{history.ntests > 1 ? 's' : ''}
-          </div>
-          {history.cd}
-        </div>
-      </div>
-    {/each}
-  </div>
-
-  <PartTitle title={testSuiteName} />
-
-  <div class="test-runner-btn {runnable ? '' : 'disabled'}" on:click={runTest}>
-    <i class="fas fa-bolt" />
-    Run
-  </div>
-  <div
-    class="ip"
-    style="text-align: left; margin-bottom: 10px; margin-right: 10px;">
-    <input
-      type="text"
-      placeholder="Describe your test"
-      bind:value={title}
-      style="border-color: #efefef;" />
-  </div>
-  <div style="display: flex;">
-
-    <div
-      style="flex: 7; border-right: 1px solid rgb(241, 241, 241); position:
-      relative;">
-      <div class="label">
-        {ipType}
-        <input
-          type="file"
-          id="file"
-          title="Add File"
-          on:change={readFile}
-          style="display:none;"
-          multiple
-          accept=".sfr" />
-      </div>
-      <div class="ip-options">
-        <div class={loadingFile ? 'hide' : ''}>
-          <div style="text-align: left; color:#888181;">
-            <i class="fas fa-bars" />
-          </div>
-          <div
-            class="opt-list {isS3FormNeeded || isSimulationRequired ? 'hide' : ''}">
-            <div
-              class="opt"
-              data-act="0"
-              on:click={loadFile}
-              style="display: none">
-              <i class="fas fa-desktop" />
-              <span>Load from PC</span>
-            </div>
-            <div
-              class="opt"
-              data-act="1"
-              on:click={loadFile}
-              style="display: none">
-              <i class="fab fa-aws" />
-              <span>Read S3 file</span>
-            </div>
-            <div
-              class="opt {$form.testcases.length == 0 ? 'disabled' : ''}"
-              data-act="2"
-              on:click={loadFile}>
-              <i class="far fa-folder" />
-              <span>Copy last test</span>
-            </div>
-            <div
-              class="opt {$form.testcases.length == 0 ? 'disabled' : ''}"
-              data-act="3"
-              on:click={loadFile}>
-              <i class="far fa-window-restore" />
-              <span>Replicate test</span>
-            </div>
-          </div>
-        </div>
-
-        <div class={!loadingFile ? 'hide' : ''}>
-          <i class="fas fa-circle-notch fa-spin" />
-        </div>
-      </div>
-      <div class="{!isS3FormNeeded ? 'hide' : ''} s3-form">
-        <input
-          type="text"
-          placeholder="S3 File Location"
-          bind:value={s3Location} />
-        <div class="act-wrapper">
-          <span class="s3-act green" on:click={loadFromS3}>
-            <i class="fas fa-check" />
-          </span>
-          <span class="s3-act red" on:click={() => (isS3FormNeeded = false)}>
-            <i class="fas fa-times" />
-          </span>
-        </div>
-      </div>
-      <div class="{!isSimulationRequired ? 'hide' : ''} s3-form">
-        <input
-          type="text"
-          placeholder="Enter Test Count"
-          bind:value={simTestCount} />
-        <div class="act-wrapper">
-          <span class="s3-act green" on:click={replicateTests}>
-            <i class="fas fa-check" />
-          </span>
-          <span
-            class="s3-act red"
-            on:click={() => (isSimulationRequired = false)}>
-            <i class="fas fa-times" />
-          </span>
-        </div>
-      </div>
-      <Editor width="100%" val={sampleXML} eid="ed2" {mode} {fsize} />
-    </div>
-    <div style="flex: 3 1 3%; margin-left: 10px; ">
-      <div class="label" style="margin-bottom: 10px;">
-        Validator
-        <select bind:value={validator} on:change={updateValidator}>
-          <option value="0">RJQL</option>
-          <option value="1">Text</option>
-          <option value="2">RegEx</option>
-        </select>
-        <div
-          class="rjql-doc-link {validator == 0 ? '' : 'hide'}"
-          on:click={() => showRJQLDoc()}
-          title="What is RJQL">
-          <i class="fas fa-question-circle" />
-        </div>
-      </div>
-      <Editor
-        width="98%"
-        val={sampleQuery}
-        eid="ed3"
-        mode="javascript"
-        showLineNo={false}
-        {fsize} />
-    </div>
-  </div>
-
-  <div style="text-align: left; margin: 10px 0px;">
-    <div
-      class="test adder"
-      on:click={saveTestCase}
-      title={showingATest ? 'Update' : 'Save'}>
-      <i class="fas fa-{showingATest ? 'check' : 'plus'}" />
-    </div>
-    {#each testcases as test, i}
-      <div class="test" on:click={() => showThisTest(test.uuid)}>
-        <div class="delete-btn" on:click={e => deleteThis(e, test.uuid)}>
-          <i class="fas fa-minus-circle" />
-        </div>
-        <div class="title">{test.title}</div>
-        <i class="fas fa-receipt" />
-        {i + 1}
-      </div>
-    {/each}
-  </div>
-</div>

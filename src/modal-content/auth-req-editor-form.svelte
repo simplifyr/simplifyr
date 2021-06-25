@@ -1,6 +1,6 @@
 <script>
   import { onMount } from "svelte";
-  import { theme, showModal, authRequest } from "../store";
+  import { theme, showModal, authRequest, form } from "../store";
 
   let part = 0;
   let headers = [];
@@ -15,13 +15,13 @@
   }`;
 
   let hKey, hVal, pKey, pVal;
-  let title = "Cred...";
+  let title = "";
 
   onMount(() => {
     if (!$authRequest.title) {
       $authRequest = {
-        method: "POST",
-        url: "http://localhost:3000/token",
+        method: "GET",
+        url: "",
       };
     } else {
       headers = $authRequest.headers || [];
@@ -82,6 +82,9 @@
     $authRequest.params = params;
     $authRequest.body = body;
     $authRequest.title = title;
+    if ($form.modal.callback) {
+      $form.modal.callback();
+    }
   }
 
   /*

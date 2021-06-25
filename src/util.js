@@ -129,7 +129,7 @@ function isLocalReq({ url }) {
 
 
 function updateURLForGET(data) {
-    if (data.body.length > 0) {
+    if (data.body && data.body.length > 0) {
         data.url = data.url.split('?')[0] + '?' + data.body.split('\n').join('&');
     }
 }

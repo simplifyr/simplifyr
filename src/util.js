@@ -53,6 +53,7 @@ export async function postData(url, _data) {
             fetch(data.url, toLocalRequest(data)) :
             fetch(url, toPostData(data))
         );
+        _data._req = data;
         var isJSON = /json/i.test(response.headers.get('content-type'));
         var resBody = await (await isJSON ? response.json() : response.text());
         if (localReq) {

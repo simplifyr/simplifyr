@@ -21,7 +21,7 @@
     }
   }
 
-  window.document.addEventListener("click", function(e) {
+  window.document.addEventListener("click", function (e) {
     if (e.target.id != "selected-date") {
       showDropDown = false;
     }
@@ -34,7 +34,7 @@
     redisKey = toRedisKey().replace(/\d+$/, date);
     $data.loading = true;
     $data.data = {
-      done: false
+      done: false,
     };
     __load(redisKey);
   }
@@ -47,17 +47,39 @@
       if (typeof $data.data === "string") {
         $data.data = JSON.parse($data.data);
       }
+      console.log($data);
       $data.loading = false;
     }, 1000);
   }
 
   poll.subscribe(() => {
-    if($poll) {
+    if ($poll) {
       __load(toRedisKey());
       $poll = false;
     }
   });
 </script>
+
+<div>
+  <div
+    class="selected {showDropDown ? 'with-shadow' : ''}"
+    id="selected-date"
+    on:click={() => (showDropDown = true)}
+  >
+    {#if $data.urlDate}
+      {window.moment($data.urlDate).format(dateFormat)}
+    {:else}No Date Found{/if}
+  </div>
+  <div class="drop-down {showDropDown ? '' : 'hide'}">
+    {#each dates as date}
+      {#if date != $data.urlDate}
+        <div class="date" on:click={() => showThis(date)}>
+          {window.moment(date).format(dateFormat)}
+        </div>
+      {/if}
+    {/each}
+  </div>
+</div>
 
 <style>
   .selected {
@@ -119,23 +141,3 @@
     z-index: 10;
   }
 </style>
-
-<div>
-  <div
-    class="selected {showDropDown ? 'with-shadow' : ''}"
-    id="selected-date"
-    on:click={() => (showDropDown = true)}>
-    {#if $data.urlDate}
-      {window.moment($data.urlDate).format(dateFormat)}
-    {:else}No Date Found{/if}
-  </div>
-  <div class="drop-down {showDropDown ? '' : 'hide'}">
-    {#each dates as date}
-      {#if date != $data.urlDate}
-        <div class="date" on:click={() => showThis(date)}>
-          {window.moment(date).format(dateFormat)}
-        </div>
-      {/if}
-    {/each}
-  </div>
-</div>

@@ -5,7 +5,7 @@
 <span><i class="fab fa-keycdn" /> Auth</span>
 <select bind:value={$auth}>
   <option value="0">No Auth</option>
-  <option value="2">Http Token</option>
+  <option value="2">HTTP Auth</option>
   <option value="1">AWS4</option>
 </select>
 

@@ -46,6 +46,7 @@
       o.apiResp = o.loader;
       op = [...op];
       let res = await postData("/api/post-test", req);
+      o._req = req._req;
       populateAutoReqList(req, test);
       updateAPIStatus(o, res);
     },

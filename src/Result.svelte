@@ -58,7 +58,8 @@
         try {
           let res = await postData("/api/post-test", authRequestTS);
           this.tests = tests.map((t) => {
-            t.authData = res.body;
+            t.authData =
+              typeof res.body === "string" ? JSON.parse(res.body) : res.body;
             return t;
           });
         } catch (e) {
